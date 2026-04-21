@@ -1,0 +1,31 @@
+#!/usr/bin/env zsh
+set -e
+
+img=/tmp/gh-activity.png
+
+gh api graphql -f query='query {user(login: "Alex-T-27") { contributionsCollection { contributionCalendar { weeks { contributionDays { date contributionCount } } } } } }' \
+| jq -r '
+  def color(c):
+    if   c == 0 then "#161b22"
+    elif c <= 3 then "#0e4429"
+    elif c <= 6 then "#006d32"
+    elif c <= 9 then "#26a641"
+    else              "#39d353" end;
+  .data.user.contributionsCollection.contributionCalendar.weeks as $weeks
+  | ($weeks | length) as $n
+  | [
+      "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"\($n*14+2)\" height=\"100\" style=\"background:#0d1117\">",
+      ( $weeks | to_entries[] as $w
+        | $w.value.contributionDays | to_entries[] as $d
+        | "<rect x=\"\($w.key*14+2)\" y=\"\($d.key*14+2)\" width=\"12\" height=\"12\" rx=\"2\" fill=\"\(color($d.value.contributionCount))\"/>"
+      ),
+      "</svg>"
+    ] | join("\n")
+' | magick svg:- "$img"
+
+if [[ -n "$KITTY_WINDOW_ID" ]]; then
+  kitty +kitten icat "$img"
+else
+  setsid kitty --single-instance --hold sh -c "kitty +kitten icat '$img'" >/dev/null 2>&1 &
+  disown
+fi
