@@ -1,0 +1,21 @@
+#!/usr/bin/env zsh
+
+square() {
+  local count=$1
+  local color
+  if   (( count == 0 )); then color=238
+  elif (( count <= 3 )); then color=22
+  elif (( count <= 6 )); then color=28
+  elif (( count <= 9 )); then color=34
+  else                        color=40
+  fi
+  printf '\033[38;5;%sm🟩\033[0m' "$color"
+}
+
+gh api graphql -f query='query {user(login: "Alex-T-27") { contributionsCollection { contributionCalendar { weeks { contributionDays { date contributionCount } } } } } }' \
+| jq -r '[.data.user.contributionsCollection.contributionCalendar.weeks[].contributionDays | map(.contributionCount)] | transpose | map(map(.//0)) | .[] | map(tostring) | join(" ")' \
+| while read rows; do
+    for count in ${=rows}; do square "$count"; done
+    echo 
+  done
+
