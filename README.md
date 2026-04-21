@@ -2,7 +2,7 @@
 
 A tiny zsh script that renders your GitHub contribution graph in the terminal.
 
-![demo](assets/demo.png)
+![demo](assets/demo.jpeg)
 
 ## Requirements
 
